@@ -1,7 +1,7 @@
 # =-=-=-=-=-=-=-
 # EPM Variables
 # =-=-=-=-=-=-=-
-%product iRODS GSI Auth Plugin
+%product iRODS KRB Auth Plugin
 %copyright 2014, The University of North Carolina at Chapel Hill
 %vendor Renaissance Computing Institute <info@irods-consortium.org>
 %license LICENSE
@@ -10,8 +10,7 @@
 %version TEMPLATE_PLUGINVERSION TEMPLATE_PLUGINVERSIONINT
 
 %if DEB
-%requires libglobus-gssapi-gsi4
-%requires libglobus-gss-assist3
+%requires libgssapi-krb5-2
 %endif
 
 %if RPM
@@ -106,5 +105,5 @@ END_POSTREMOVE
 # =-=-=-=-=-=-=-
 # Full File Listing
 # =-=-=-=-=-=-=-
-f 644 $OS_IRODS_ACCT $OS_IRODS_ACCT ${IRODS_HOME_DIR}/plugins/auth/libgsi.so ./libgsi.so
-f 644 $OS_IRODS_ACCT $OS_IRODS_ACCT ${IRODS_HOME_DIR}/tests/pydevtest/test_irods_auth_plugin_gsi.py ./packaging/test_irods_auth_plugin_gsi.py
+f 644 $OS_IRODS_ACCT $OS_IRODS_ACCT ${IRODS_HOME_DIR}/plugins/auth/libkrb.so ./libkrb.so
+f 644 $OS_IRODS_ACCT $OS_IRODS_ACCT ${IRODS_HOME_DIR}/tests/pydevtest/test_irods_auth_plugin_krb.py ./packaging/test_irods_auth_plugin_krb.py
