@@ -14,8 +14,7 @@
 %endif
 
 %if RPM
-%requires globus-gssapi-gsi
-%requires globus-gss-assist
+%requires krb5-libs
 %endif
 
 %if ARCH
