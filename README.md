@@ -1,4 +1,4 @@
-irods_auth_plugin_krb
-=====================
+irods_auth_plugin_kerberos
+==========================
 
-Source code for the kerberos auth plugin for irods
+Source code for the kerberos auth plugin for iRODS.
