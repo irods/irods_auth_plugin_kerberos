@@ -38,18 +38,14 @@ class Test_Kerberos_Suite(unittest.TestCase, ResourceBase):
         os.system("cp %s %s" % (keytabFileSource, keytabFileDest))
 
         # Edit the server config to set the name of the irods service
-        os.system("sed -i \"s/irods\/zuri.unc.edu@UNC.EDU/irods-server\/%s@IRODS.RENCI.ORG/g\" %s" % (hostname, serverConfig))
-        os.system("sed -i \"s/# Ker/Ker/g\" %s" % serverConfig)
+        os.system("echo \"KerberosServicePrincipal irods-server\/%s@IRODS.RENCI.ORG\" >> %s" % (hostname, serverConfig))
+        os.system("echo \"KerberosKeytab %s\" >> %s" % (keytabFileDest, serverConfig))
 
         # Add the user authentication
         os.system("iadmin aua %s %s" % (irodsUser, irodsUserDN))
 
         # Set the appropriate environment variables
         os.environ['irodsAuthScheme'] = "krb"
-        os.environ['KRB5_KTNAME'] = keytabFileDest
-
-        # Restart the server
-        os.system("/var/lib/irods/iRODS/irodsctl irestart")
 
     # Try to authenticate before getting a TGT. Make sure this fails.
     def test_authentication_krb_without_tgt(self):
