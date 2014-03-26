@@ -572,8 +572,16 @@ extern "C" {
             OM_uint32 flags = 0;
 
             // overload the use of the username in the response structure
-            const char* serviceName = ptr->request_result().c_str();
-            ret = krb_import_name( ikrb_rErrorPtr, serviceName, &target_name, true );
+            const char* serverName = getenv( "irodsServerDn" ); /* Use irodsServerDn if defined */
+            if ( serverName == NULL ) {
+                serverName = getenv( "SERVER_DN" ); /* NULL or the SERVER_DN string */
+                if ( serverName == NULL ) {
+                    /* if not provided, use the server's claimed Name */
+                    serverName =  ptr->request_result().c_str();
+                }
+            }
+
+            ret = krb_import_name( ikrb_rErrorPtr, serverName, &target_name, true );
             if ( ( result = ASSERT_PASS( ret, "Failed to import service name into KRB." ) ).ok() ) {
 
                 /*
@@ -645,7 +653,7 @@ extern "C" {
                 }
                 while ( result.ok() && majorStatus == GSS_S_CONTINUE_NEEDED );
 
-                if ( serviceName != 0 && strlen( serviceName ) > 0 ) {
+                if ( serverName != 0 && strlen( serverName ) > 0 ) {
                     ( void ) gss_release_name( &minorStatus, &target_name );
                 }
 
