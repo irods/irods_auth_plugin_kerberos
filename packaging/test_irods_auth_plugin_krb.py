@@ -36,6 +36,7 @@ class Test_Kerberos_Suite(unittest.TestCase, ResourceBase):
 
         # Copy the keytab file to the irods install area
         os.system("cp %s %s" % (keytabFileSource, keytabFileDest))
+        os.system("chmod 600 %s" % keytabFileDest)
 
         # Edit the server config to set the name of the irods service
         os.system("echo \"KerberosServicePrincipal irods-server\/%s@IRODS.RENCI.ORG\" >> %s" % (hostname, serverConfig))
