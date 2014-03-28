@@ -54,7 +54,7 @@ class Test_Kerberos_Suite(unittest.TestCase, ResourceBase):
         self.kerberos_setup()
 
         # Destroy any existing TGT's
-        os.system("kdestroy -A")
+        os.system("kdestroy")
 
         # Try an ils and make sure it fails
         assertiCmdFail(s.adminsession, "ils", "LIST", "home")
