@@ -29,7 +29,7 @@ class Test_Kerberos_Suite(unittest.TestCase, ResourceBase):
 
         keytabFileSource = "~/secrets/kerberos/irods.keytab"
         keytabFileDest = "/var/lib/irods/irods.keytab"
-        hostname = socket.gethostname()
+        hostname = socket.getfqdn()
         serverConfig = "/etc/irods/server.config"
         irodsUser = "rods"
         irodsUserDN = "irods@IRODS.RENCI.ORG"
