@@ -16,7 +16,7 @@ class Test_Kerberos_Suite(unittest.TestCase, ResourceBase):
     my_test_resource = {"setup":[], "teardown":[]}
 
     # Place holder for the auth scheme before the test is run
-    prev_auth_scheme = ""
+    prev_auth_scheme = "native"
 
     def setUp(self):
         ResourceBase.__init__(self)
@@ -49,7 +49,10 @@ class Test_Kerberos_Suite(unittest.TestCase, ResourceBase):
         os.system("iadmin aua %s %s" % (irodsUser, irodsUserDN))
 
         # Set the appropriate environment variables
-        prev_auth_scheme = os.environ['irodsAuthScheme']
+        try:
+            prev_auth_scheme = os.environ['irodsAuthScheme']
+        except KeyError:
+            pass
         os.environ['irodsAuthScheme'] = "krb"
 
     # Do some cleanup for kerberos specific environment
