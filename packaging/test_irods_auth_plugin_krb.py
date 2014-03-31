@@ -50,7 +50,7 @@ class Test_Kerberos_Suite(unittest.TestCase, ResourceBase):
 
         # Set the appropriate environment variables
         try:
-            prev_auth_scheme = os.environ['irodsAuthScheme']
+            self.prev_auth_scheme = os.environ['irodsAuthScheme']
         except KeyError:
             pass
         os.environ['irodsAuthScheme'] = "krb"
@@ -59,7 +59,7 @@ class Test_Kerberos_Suite(unittest.TestCase, ResourceBase):
     def kerberos_teardown(self):
         
         # Restore the previous auth scheme
-        os.environ['irodsAuthScheme'] = prev_auth_scheme
+        os.environ['irodsAuthScheme'] = self.prev_auth_scheme
 
     # Try to authenticate before getting a TGT. Make sure this fails.
     def test_authentication_krb_without_tgt(self):
@@ -70,7 +70,7 @@ class Test_Kerberos_Suite(unittest.TestCase, ResourceBase):
         os.system("kdestroy")
 
         # Try an ils and make sure it fails
-        assertiCmdFail(s.adminsession, "ils", "LIST", "home")
+        assertiCmd(s.adminsession, "ils", "ERROR", "KRB_ERROR_ACQUIRING_CREDS")
 
         # Clean up
         self.kerberos_teardown()
