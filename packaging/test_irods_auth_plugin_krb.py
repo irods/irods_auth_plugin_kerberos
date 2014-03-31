@@ -42,6 +42,7 @@ class Test_Kerberos_Suite(unittest.TestCase, ResourceBase):
         os.system("chmod 600 %s" % keytabFileDest)
 
         # Edit the server config to set the name of the irods service
+        print("iRODS Server Hostname: ", hostname
         os.system("echo \"KerberosServicePrincipal irods-server/%s@IRODS.RENCI.ORG\" >> %s" % (hostname, serverConfig))
         os.system("echo \"KerberosKeytab %s\" >> %s" % (keytabFileDest, serverConfig))
 
