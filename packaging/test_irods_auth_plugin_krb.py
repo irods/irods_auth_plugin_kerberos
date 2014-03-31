@@ -15,6 +15,9 @@ class Test_Kerberos_Suite(unittest.TestCase, ResourceBase):
     
     my_test_resource = {"setup":[], "teardown":[]}
 
+    # Place holder for the auth scheme before the test is run
+    prev_auth_scheme = ""
+
     def setUp(self):
         ResourceBase.__init__(self)
         s.twousers_up()
@@ -46,7 +49,14 @@ class Test_Kerberos_Suite(unittest.TestCase, ResourceBase):
         os.system("iadmin aua %s %s" % (irodsUser, irodsUserDN))
 
         # Set the appropriate environment variables
+        prev_auth_scheme = os.environ['irodsAuthScheme']
         os.environ['irodsAuthScheme'] = "krb"
+
+    # Do some cleanup for kerberos specific environment
+    def kerberos_teardown(self):
+        
+        # Restore the previous auth scheme
+        os.environ['irodsAuthScheme'] = prev_auth_scheme
 
     # Try to authenticate before getting a TGT. Make sure this fails.
     def test_authentication_krb_without_tgt(self):
@@ -58,6 +68,9 @@ class Test_Kerberos_Suite(unittest.TestCase, ResourceBase):
 
         # Try an ils and make sure it fails
         assertiCmdFail(s.adminsession, "ils", "LIST", "home")
+
+        # Clean up
+        self.kerberos_teardown()
 
     # Try to authenticate after getting a TGT. This should pass
     def test_authentication_krb_with_tgt(self):
@@ -72,6 +85,8 @@ class Test_Kerberos_Suite(unittest.TestCase, ResourceBase):
         # Try an ils
         assertiCmd(s.adminsession, "ils", "LIST", "home")
 
+        # Clean up
+        self.kerberos_teardown()
 
 
         
