@@ -2,6 +2,8 @@
 
 #include "rodsErrorTable.hpp"
 #include "rodsLog.hpp"
+#include "authenticate.hpp"
+#include "reFuncDefs.hpp"
 #include "miscServerFunct.hpp"
 #include "irods_error.hpp"
 #include "irods_krb_object.hpp"
