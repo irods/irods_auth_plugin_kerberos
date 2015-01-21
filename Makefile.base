@@ -8,7 +8,7 @@ OBJS = $(patsubst %.cpp, ${OBJDIR}/%.o, ${SRCS})
 
 GCC = g++ -DRODS_SERVER 
 
-INC = -I/usr/include/irods
+INC = -I/usr/include/irods -I/usr/include/irods/jansson/src
 MY_CFLAG += ${INC}
 
 %.o: %.cpp

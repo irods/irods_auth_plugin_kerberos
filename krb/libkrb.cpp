@@ -948,7 +948,7 @@ extern "C" {
                                acGetUserByDN(*arg,*OUT)||msiExecCmd(t,"*arg",null,null,null,*OUT)|nop
                             */
                             ruleExecInfo_t rei;
-                            char *args[2];
+                            const char *args[2];
                             msParamArray_t *myMsParamArray;
                             msParamArray_t myInOutParamArray;
 
