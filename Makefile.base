@@ -8,8 +8,8 @@ OBJS = $(patsubst %.cpp, ${OBJDIR}/%.o, ${SRCS})
 
 GCC = g++ -DRODS_SERVER 
 
-INC = -I/usr/include/irods -I/usr/include/irods/jansson/src
-MY_CFLAG += ${INC}
+INC = -I/usr/include/irods -I/usr/include/irods/jansson/src -I/usr/include/irods/boost
+MY_CFLAG += ${INC} ${HEADERS}
 
 %.o: %.cpp
 	${GCC} ${MY_CFLAG} -D${OS_platform} -fPIC -c -g -o $@ $<
