@@ -6,8 +6,13 @@ To build the Kerberos Auth Plugin, you will need to have:
  - the iRODS Development Tools (irods-dev and irods-runtime) installed for your platform
      http://irods.org/download
 
- - krb5-devel installed for your platform
+ - krb5-devel installed for your platform 
+    - Ubuntu 12: krb5-devel and krb5-user (for kinit)
 
 Then to build this auth plugin:
 
   ./packaging/build.sh
+
+Then install the resulting package e.g.
+
+  sudo dpkg -i build/irods-auth-plugin-krb-1.2.deb
