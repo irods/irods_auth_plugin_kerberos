@@ -27,7 +27,6 @@
 # Install variables
 # =-=-=-=-=-=-=-
 $IRODS_HOME_DIR=/var/lib/irods
-$OS_IRODS_ACCT=irods
 
 
 # =-=-=-=-=-=-=-
@@ -48,6 +47,9 @@ END_PREINSTALL
 # post install
 # =-=-=-=-=-=-=-
 %postinstall << END_POSTINSTALL
+. /etc/irods/service_account.config 2> /dev/null
+chown $$IRODS_SERVICE_ACCOUNT_NAME:$$IRODS_SERVICE_GROUP_NAME ${IRODS_HOME_DIR}/plugins/auth/libkrb.so
+chown $$IRODS_SERVICE_ACCOUNT_NAME:$$IRODS_SERVICE_GROUP_NAME ${IRODS_HOME_DIR}/tests/pydevtest/test_irods_auth_plugin_krb.py
 END_POSTINSTALL
 
 # =-=-=-=-=-=-=-
@@ -89,5 +91,5 @@ END_POSTREMOVE
 # =-=-=-=-=-=-=-
 # Full File Listing
 # =-=-=-=-=-=-=-
-f 644 $OS_IRODS_ACCT $OS_IRODS_ACCT ${IRODS_HOME_DIR}/plugins/auth/libkrb.so ./libkrb.so
-f 644 $OS_IRODS_ACCT $OS_IRODS_ACCT ${IRODS_HOME_DIR}/tests/pydevtest/test_irods_auth_plugin_krb.py ./packaging/test_irods_auth_plugin_krb.py
+f 644 root root ${IRODS_HOME_DIR}/plugins/auth/libkrb.so ./libkrb.so
+f 644 root root ${IRODS_HOME_DIR}/tests/pydevtest/test_irods_auth_plugin_krb.py ./packaging/test_irods_auth_plugin_krb.py
