@@ -47,9 +47,12 @@ END_PREINSTALL
 # post install
 # =-=-=-=-=-=-=-
 %postinstall << END_POSTINSTALL
-. /etc/irods/service_account.config 2> /dev/null
-chown $$IRODS_SERVICE_ACCOUNT_NAME:$$IRODS_SERVICE_GROUP_NAME ${IRODS_HOME_DIR}/plugins/auth/libkrb.so
-chown $$IRODS_SERVICE_ACCOUNT_NAME:$$IRODS_SERVICE_GROUP_NAME ${IRODS_HOME_DIR}/tests/pydevtest/test_irods_auth_plugin_krb.py
+IRODS_SERVICE_ACCOUNT_FILE=/etc/irods/service_account.config
+if  [ -f "$$IRODS_SERVICE_ACCOUNT_FILE" ] ; then
+    . $$IRODS_SERVICE_ACCOUNT_FILE 2> /dev/null
+    chown $$IRODS_SERVICE_ACCOUNT_NAME:$$IRODS_SERVICE_GROUP_NAME ${IRODS_HOME_DIR}/plugins/auth/libkrb.so
+    chown $$IRODS_SERVICE_ACCOUNT_NAME:$$IRODS_SERVICE_GROUP_NAME ${IRODS_HOME_DIR}/tests/pydevtest/test_irods_auth_plugin_krb.py
+fi
 END_POSTINSTALL
 
 # =-=-=-=-=-=-=-
