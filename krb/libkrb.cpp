@@ -122,16 +122,6 @@ extern "C" {
         return result;
     }
 
-    irods::error krb_kerberos_name(
-        std::string& _rtn_name ) {
-        irods::error result = SUCCESS();
-        irods::error ret;
-        irods::server_properties::getInstance().capture_if_needed();
-        ret = irods::server_properties::getInstance().get_property<std::string>( KERBEROS_NAME_KW, _rtn_name );
-        result = ASSERT_PASS( ret, "Failed reading %s from the server properties.", KERBEROS_NAME_KW );
-        return result;
-    }
-
     void krb_log_error_1(
         rError_t* _r_error,
         const char *callerMsg,
@@ -1228,11 +1218,10 @@ extern "C" {
 
                 if ( result.ok() ) {
                     irods::krb_auth_object_ptr ptr = boost::dynamic_pointer_cast<irods::krb_auth_object>( _ctx.fco() );
-                    std::string service_name;
                     std::string kerberos_name;
-                    ret = krb_kerberos_name( kerberos_name );
+                    ret = irods::get_server_property<std::string>(KERBEROS_NAME_KW, kerberos_name);
                     if ( ( result = ASSERT_PASS( ret, "Failed to fetch Kerberos name from server config." ) ).ok() ) {
-
+                        std::string service_name;
                         ret = krb_setup_creds( ptr, false, kerberos_name, service_name );
                         if ( ( result = ASSERT_PASS( ret, "Setting up KRB credentials failed." ) ).ok() ) {
                             _ctx.comm()->gsiRequest = 1;
