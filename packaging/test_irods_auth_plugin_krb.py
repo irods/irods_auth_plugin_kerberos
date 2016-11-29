@@ -6,8 +6,23 @@ else:
     import unittest2 as unittest
 import shutil
 import json
-import lib
 
+from . import session
+from .. import lib
+
+
+
+def ils_output_to_entries(stdout):
+    raw = stdout.strip().split('\n')
+    collection = raw[0]
+    entries = [entry.strip() for entry in raw[1:]]
+    return entries
+
+def files_in_ils_output(ils_out):
+    for item in ils_out:
+        # strip collections
+        if not item.startswith('C- /'):
+            yield item
 
 # JSON config file must have:
 #    'client_user_principal'
@@ -33,11 +48,11 @@ class Test_Authentication(unittest.TestCase):
         os.mkdir(self.testing_tmp_dir)
 
         # admin sesh
-        self.admin = lib.make_session_for_existing_admin()
+        self.admin = session.make_session_for_existing_admin()
 
         # make new user with no password
         self.krb_username = 'krb_user'
-        self.krb_user = lib.mkuser_and_return_session(
+        self.krb_user = session.mkuser_and_return_session(
             'rodsuser', self.krb_username, None, lib.get_hostname())
 
         # set auth scheme for new user (client side)
@@ -97,12 +112,12 @@ class Test_Authentication(unittest.TestCase):
             # run ils on subcollection
             self.krb_user.assert_icommand(
                 ['ils', partial_path], 'STDOUT_SINGLELINE', env=env)
-            ils_out = lib.ils_output_to_entries(
-                self.krb_user.run_icommand(['ils', partial_path], env=env)[1])
+            ils_out = ils_output_to_entries(
+                self.krb_user.run_icommand(['ils', partial_path], env=env)[0])
 
             # compare local files with irods objects
             local_files = set(files)
-            rods_files = set(lib.files_in_ils_output(ils_out))
+            rods_files = set(files_in_ils_output(ils_out))
             self.assertTrue(local_files == rods_files,
                             msg="Files missing:\n" + str(local_files - rods_files) + "\n\n" +
                             "Extra files:\n" + str(rods_files - local_files))
@@ -138,12 +153,12 @@ class Test_Authentication(unittest.TestCase):
             # run ils on subcollection
             self.krb_user.assert_icommand(
                 ['ils', partial_path], 'STDOUT_SINGLELINE', env=env)
-            ils_out = lib.ils_output_to_entries(
-                self.krb_user.run_icommand(['ils', partial_path], env=env)[1])
+            ils_out = ils_output_to_entries(
+                self.krb_user.run_icommand(['ils', partial_path], env=env)[0])
 
             # compare local files with irods objects
             local_files = set(files)
-            rods_files = set(lib.files_in_ils_output(ils_out))
+            rods_files = set(files_in_ils_output(ils_out))
             self.assertTrue(local_files == rods_files,
                             msg="Files missing:\n" + str(local_files - rods_files) + "\n\n" +
                             "Extra files:\n" + str(rods_files - local_files))

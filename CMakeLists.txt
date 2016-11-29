@@ -1,0 +1,156 @@
+cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR) #CPACK_DEBIAN_<COMPONENT>_PACKAGE_NAME
+
+find_package(IRODS 4.2.0 EXACT REQUIRED)
+
+set(CMAKE_C_COMPILER ${IRODS_EXTERNALS_FULLPATH_CLANG}/bin/clang)
+set(CMAKE_CXX_COMPILER ${IRODS_EXTERNALS_FULLPATH_CLANG}/bin/clang++)
+set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+
+project(irods-kerberos C CXX)
+
+include(${IRODS_TARGETS_PATH})
+
+set(IRODS_PLUGIN_VERSION_MAJOR "2")
+set(IRODS_PLUGIN_VERSION_MINOR "0")
+set(IRODS_PLUGIN_VERSION_PATCH "0")
+set(IRODS_PLUGIN_VERSION "${IRODS_PLUGIN_VERSION_MAJOR}.${IRODS_PLUGIN_VERSION_MINOR}.${IRODS_PLUGIN_VERSION_PATCH}")
+
+if (NOT CPACK_PACKAGING_INSTALL_PREFIX)
+  set(CPACK_PACKAGING_INSTALL_PREFIX "/" CACHE STRING "Package root path. \"/\" is correct for normal package builds.." FORCE)
+  message(STATUS "Setting unspecified CPACK_PACKAGING_INSTALL_PREFIX to '${CPACK_PACKAGING_INSTALL_PREFIX}'. This is the correct setting for normal builds.")
+endif()
+
+if (NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build {Debug, Release}." FORCE)
+  message(STATUS "Setting unspecified CMAKE_BUILD_TYPE to '${CMAKE_BUILD_TYPE}'")
+endif()
+
+set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -stdlib=libc++ -Wl,-z,defs")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libc++ -Wl,-z,defs")
+add_compile_options(-nostdinc++ -Wall -Wextra -Werror)
+add_compile_options(-Wno-unused-parameter) # Until fix of irods_re_plugin.hpp
+add_compile_options(-Wno-unneeded-internal-declaration) # Until fix of https://github.com/irods/irods/issues/3396
+link_libraries(c++abi)
+include_directories(${IRODS_EXTERNALS_FULLPATH_CLANG}/include/c++/v1)
+
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(CMAKE_INSTALL_RPATH ${IRODS_EXTERNALS_FULLPATH_CLANG_RUNTIME}/lib)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+
+find_package(OpenSSL REQUIRED)
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+find_package(GSS REQUIRED)
+
+set(PLUGIN krb)
+set(
+  IRODS_PLUGIN_COMPILE_DEFINITIONS_client
+  )
+set(
+  IRODS_PLUGIN_COMPILE_DEFINITIONS_server
+  RODS_SERVER
+  ENABLE_RE
+  )
+set(
+  IRODS_PLUGIN_LINK_LIBRARIES_client
+  irods_client
+  )
+set(
+  IRODS_PLUGIN_LINK_LIBRARIES_server
+  irods_server
+  )
+set(
+  IRODS_PLUGIN_TYPES
+  client
+  server
+  )
+
+foreach(TYPE ${IRODS_PLUGIN_TYPES})
+  set(IRODS_CURRENT_PLUGIN_TARGET ${PLUGIN}_${TYPE})
+  add_library(
+    ${IRODS_CURRENT_PLUGIN_TARGET}
+    MODULE
+    ${CMAKE_SOURCE_DIR}/krb/libkrb.cpp
+    )
+  target_include_directories(
+    ${IRODS_CURRENT_PLUGIN_TARGET}
+    PRIVATE
+    ${IRODS_INCLUDE_DIRS}
+    ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
+    ${IRODS_EXTERNALS_FULLPATH_JANSSON}/include
+    )
+  target_link_libraries(
+    ${IRODS_CURRENT_PLUGIN_TARGET}
+    PRIVATE
+    ${IRODS_PLUGIN_LINK_LIBRARIES_${TYPE}}
+    irods_common
+    irods_plugin_dependencies
+    ${OPENSSL_CRYPTO_LIBRARY}
+    ${GSS_LIBRARIES}
+    )
+  target_compile_definitions(${IRODS_CURRENT_PLUGIN_TARGET} PRIVATE ${IRODS_PLUGIN_COMPILE_DEFINITIONS_${TYPE}} ${IRODS_COMPILE_DEFINITIONS} BOOST_SYSTEM_NO_DEPRECATED)
+  set_property(TARGET ${IRODS_CURRENT_PLUGIN_TARGET} PROPERTY CXX_STANDARD ${IRODS_CXX_STANDARD})
+  install(
+    TARGETS
+    ${IRODS_CURRENT_PLUGIN_TARGET}
+    LIBRARY
+    DESTINATION ${IRODS_PLUGINS_DIRECTORY}/auth
+    )
+endforeach()
+
+install(
+  FILES
+  ${CMAKE_SOURCE_DIR}/packaging/test_irods_auth_plugin_krb.py
+  DESTINATION ${IRODS_HOME_DIRECTORY}/scripts/irods/test
+  PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+  )
+
+
+set(CPACK_PACKAGE_FILE_NAME "irods-auth-plugin-krb${IRODS_PACKAGE_FILE_NAME_SUFFIX}")
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+set(CPACK_COMPONENT_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+set(CPACK_COMPONENTS_GROUPING IGNORE)
+set(CPACK_PACKAGE_VERSION ${IRODS_PLUGIN_VERSION})
+set(CPACK_PACKAGE_VERSION_MAJOR ${IRODS_PLUGIN_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${IRODS_PLUGIN_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${IRODS_PLUGIN_VERSION_PATCH})
+set(CPACK_PACKAGE_CONTACT "Renaissance Computing Institute <info@irods.org>")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "The integrated Rule-Oriented Data System")
+set(CPACK_PACKAGE_VENDOR "Renaissance Computing Institute <info@irods.org>")
+
+set(CPACK_DEB_COMPONENT_INSTALL OFF)
+set(CPACK_DEBIAN_PACKAGE_SECTION "contrib/science")
+set(CPACK_DEBIAN_COMPRESSION_TYPE "gzip")
+set(CPACK_DEBIAN_PACKAGE_PRIORITY "extra")
+set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://irods.org")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS OFF)
+set(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION ON)
+set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/packaging/postinst;")
+
+set(CPACK_RPM_COMPONENT_INSTALL OFF)
+set(CPACK_RPM_PACKAGE_RELEASE "1")
+set(CPACK_RPM_PACKAGE_LICENSE "BSD-3-Clause")
+set(CPACK_RPM_PACKAGE_VENDOR "iRODS Consortium")
+set(CPACK_RPM_PACKAGE_URL "https://irods.org")
+set(CPACK_RPM_PACKAGE_AUTOREQ 0)
+set(CPACK_RPM_PACKAGE_AUTOPROV 0)
+set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/packaging/postinst")
+
+set(CPACK_ARCHIVE_COMPONENT_INSTALL OFF)
+
+set(CPACK_DEBIAN_PACKAGE_NAME "irods-auth-plugin-krb")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "${IRODS_PACKAGE_DEPENDENCIES_STRING}, irods-runtime (= ${IRODS_CPACK_DEBIAN_PACKAGE_VERSION}), libc6, libgssapi-krb5-2")
+
+set(CPACK_RPM_PACKAGE_NAME "irods-auth-plugin-krb")
+if (IRODS_LINUX_DISTRIBUTION_NAME STREQUAL "centos" OR IRODS_LINUX_DISTRIBUTION_NAME STREQUAL "centos linux")
+  set(CPACK_RPM_PACKAGE_REQUIRES "${IRODS_PACKAGE_DEPENDENCIES_STRING}, irods-runtime = ${IRODS_VERSION}, openssl, krb5-libs")
+elseif (IRODS_LINUX_DISTRIBUTION_NAME STREQUAL "opensuse")
+  set(CPACK_RPM_PACKAGE_REQUIRES "${IRODS_PACKAGE_DEPENDENCIES_STRING}, irods-runtime = ${IRODS_VERSION}, libopenssl1_0_0, krb5-libs")
+endif()
+
+
+if (NOT CPACK_GENERATOR)
+  set(CPACK_GENERATOR ${IRODS_CPACK_GENERATOR} CACHE STRING "CPack generator to use, e.g. {DEB, RPM, TGZ}." FORCE)
+  message(STATUS "Setting unspecified CPACK_GENERATOR to ${CPACK_GENERATOR}. This is the correct setting for normal builds.")
+endif()
+
+include(CPack)
