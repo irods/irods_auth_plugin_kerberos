@@ -1408,7 +1408,7 @@ irods::error krb_auth_agent_response(
                     ret = check_proxy_user_privileges( _ctx.comm(), authCheckOut->privLevel );
 
                     if ( ( result = ASSERT_PASS( ret, "Check proxy user priviledges failed." ) ).ok() ) {
-                        rodsLog( LOG_NOTICE,
+                        rodsLog( LOG_DEBUG,
                                  "rsAuthResponse set proxy authFlag to %d, client authFlag to %d, user:%s proxy:%s client:%s",
                                  authCheckOut->privLevel,
                                  authCheckOut->clientPrivLevel,
