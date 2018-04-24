@@ -9,7 +9,7 @@ import json
 
 from . import session
 from .. import lib
-
+from ..controller import IrodsController
 
 
 def ils_output_to_entries(stdout):
@@ -38,6 +38,16 @@ class Test_Authentication(unittest.TestCase):
     def setUp(self):
         super(Test_Authentication, self).setUp()
 
+        with open('/etc/irods/server_config.json') as f:
+            d = json.load(f)
+        if 'KRB5_KTNAME' not in d['environment_variables']:
+            d['KerberosServicePrincipal'] = 'irods/icat.example.org@EXAMPLE.ORG'
+            d['KerberosKeytab'] = '/var/lib/irods/irods.keytab'  # Not actually used, read from the environment variable
+            d['environment_variables']['KRB5_KTNAME'] = '/var/lib/irods/irods.keytab'
+            with open('/etc/irods/server_config.json', 'w') as f:
+                json.dump(d, f, indent=4, sort_keys=True)
+            IrodsController().restart()
+ 
         # load configuration from file
         with open(CFG_FILE_PATH) as cfg_file:
             self.config = json.load(cfg_file)
