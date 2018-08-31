@@ -6,6 +6,7 @@ else:
     import unittest2 as unittest
 import shutil
 import json
+import ustrings
 
 from . import session
 from .. import lib
@@ -113,7 +114,7 @@ class Test_Authentication(unittest.TestCase):
 
         # sync dir to coll
         self.krb_user.assert_icommand(
-            "irsync -r {local_dir} i:{base_name}".format(**locals()), "EMPTY", env=env)
+            "irsync -r {local_dir} i:{base_name}".format(**locals()), "STDOUT_SINGLELINE", ustrings.recurse_ok_string(), env=env)
 
         # compare files at each level
         for directory, files in local_dirs.iteritems():
@@ -154,7 +155,7 @@ class Test_Authentication(unittest.TestCase):
 
         # sync dir to coll
         self.krb_user.assert_icommand(
-            "irsync -r {local_dir} i:{base_name}".format(**locals()), "EMPTY", env=env)
+            "irsync -r {local_dir} i:{base_name}".format(**locals()), "STDOUT_SINGLELINE", ustrings.recurse_ok_string(), env=env)
 
         # compare files at each level
         for directory, files in local_dirs.iteritems():
