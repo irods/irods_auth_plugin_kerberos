@@ -55,7 +55,7 @@ krb5-config	krb5-config/kerberos_servers	string	icat.example.org
 
 
 def install_kerberos_packages_yum():
-    irods_python_ci_utilities.install_os_packages(['krb5-server', 'krb5-libs', 'krb5-auth-dialog', 'krb5-workstation'])
+    irods_python_ci_utilities.install_os_packages(['krb5-server', 'krb5-libs', 'krb5-workstation'])
 
 
 def install_kerberos_packages():
