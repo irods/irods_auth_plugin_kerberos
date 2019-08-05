@@ -52,6 +52,8 @@ krb5-config	krb5-config/kerberos_servers	string	icat.example.org
         f.flush()
         irods_python_ci_utilities.subprocess_get_output(['sudo', 'debconf-set-selections', f.name], check_rc=True)
     irods_python_ci_utilities.install_os_packages(['krb5-admin-server', 'krb5-kdc'])
+    irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'enable', 'krb5-admin-server.service'], check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'enable', 'krb5-kdc.service'], check_rc=True)
 
 
 def install_kerberos_packages_yum():
@@ -182,8 +184,8 @@ def configure_realm_and_domain():
 
 
 def restart_kerberos_apt():
-    irods_python_ci_utilities.subprocess_get_output(['sudo', 'invoke-rc.d', 'krb5-admin-server', 'restart'], check_rc=True)
-    irods_python_ci_utilities.subprocess_get_output(['sudo', 'invoke-rc.d', 'krb5-kdc', 'restart'], check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'restart', 'krb5-admin-server.service'], check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'restart', 'krb5-kdc.service'], check_rc=True)
 
 
 def restart_kerberos_yum():
