@@ -58,6 +58,8 @@ krb5-config	krb5-config/kerberos_servers	string	icat.example.org
 
 def install_kerberos_packages_yum():
     irods_python_ci_utilities.install_os_packages(['krb5-server', 'krb5-libs', 'krb5-workstation'])
+    irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'enable', 'krb5kdc.service'], check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'enable', 'kadmin.service'], check_rc=True)
 
 
 def install_kerberos_packages():
@@ -139,7 +141,10 @@ def configure_realm_and_domain_yum():
     with tempfile.NamedTemporaryFile() as conf_copy:
         with open('/etc/krb5.conf', 'r') as krb5_file:
              for l in krb5_file:
-                 conf_copy.write(l)
+                 if 'default_ccache_name' in l:
+                     conf_copy.write("#default_ccache_name = KEYRING:persistent:%{uid}")
+                 else:
+                     conf_copy.write(l)
         conf_copy.write(krb5_conf_contents)
         conf_copy.flush()
         irods_python_ci_utilities.subprocess_get_output(['sudo', 'cp', conf_copy.name, '/etc/krb5.conf'], check_rc=True)
@@ -197,8 +202,6 @@ def restart_kerberos_yum():
     elif irods_python_ci_utilities.get_distribution_version_major() == '7':
         irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'restart', 'krb5kdc.service'], check_rc=True)
         irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'restart', 'kadmin.service'], check_rc=True)
-        irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'enable', 'krb5kdc.service'], check_rc=True)
-        irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'enable', 'kadmin.service'], check_rc=True)
     else:
         assert False, 'OS unsupported: ' + irods_python_ci_utilities.get_irods_platform_string()
 
@@ -317,7 +320,7 @@ def create_json_config_file_for_unit_test():
 
 def install_testing_dependencies():
     irods_python_ci_utilities.subprocess_get_output(['sudo', '-EH', 'pip', 'install', 'unittest-xml-reporting==1.14.0'])
-    add_shortname_to_etc_hosts()
+    #add_shortname_to_etc_hosts()
     install_kerberos_packages()
     configure_realm_and_domain()
     restart_kerberos()
