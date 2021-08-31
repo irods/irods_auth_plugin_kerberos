@@ -70,7 +70,7 @@ static unsigned int context_flags;
 
 irods::error krb_kerberos_name(std::string& kerberos_name) {
     try {
-        kerberos_name = irods::get_server_property<std::string&>("KerberosServicePrincipal");
+        kerberos_name = irods::get_server_property<std::string>("KerberosServicePrincipal");
     } catch (const irods::exception& e) {
         return irods::error(e);
     }
