@@ -74,6 +74,8 @@ foreach(TYPE ${IRODS_PLUGIN_TYPES})
     PRIVATE
     ${IRODS_INCLUDE_DIRS}
     ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
+    ${IRODS_EXTERNALS_FULLPATH_FMT}/include
+    ${IRODS_EXTERNALS_FULLPATH_JSON}/include
     )
   target_link_libraries(
     ${IRODS_CURRENT_PLUGIN_TARGET}
@@ -84,6 +86,7 @@ foreach(TYPE ${IRODS_PLUGIN_TYPES})
     ${OPENSSL_CRYPTO_LIBRARY}
     ${GSS_LIBRARIES}
     ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_system.so
+    ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so
     )
   set_property(
     TARGET ${IRODS_CURRENT_PLUGIN_TARGET}
