@@ -42,6 +42,8 @@ set(IRODS_BUILD_WITH_WERROR ${IRODS_BUILD_WITH_WERROR_DEFAULT} CACHE BOOL "Choos
 
 include(UseLibCXX)
 
+find_package(nlohmann_json "3.6.1" REQUIRED)
+
 if (IRODS_BUILD_WITH_WERROR)
   add_compile_options(-Werror)
 endif()
@@ -88,7 +90,6 @@ foreach(TYPE ${IRODS_PLUGIN_TYPES})
     ${IRODS_INCLUDE_DIRS}
     ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
     ${IRODS_EXTERNALS_FULLPATH_FMT}/include
-    ${IRODS_EXTERNALS_FULLPATH_JSON}/include
     )
   target_link_libraries(
     ${IRODS_CURRENT_PLUGIN_TARGET}
