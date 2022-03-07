@@ -42,6 +42,7 @@ set(IRODS_BUILD_WITH_WERROR ${IRODS_BUILD_WITH_WERROR_DEFAULT} CACHE BOOL "Choos
 
 include(UseLibCXX)
 
+find_package(Threads REQUIRED)
 find_package(nlohmann_json "3.6.1" REQUIRED)
 
 if (IRODS_BUILD_WITH_WERROR)
