@@ -1,27 +1,27 @@
-#include "authCheck.h"
-#include "authPluginRequest.h"
-#include "authRequest.h"
-#include "authResponse.h"
-#include "authenticate.h"
-#include "genQuery.h"
-#include "irods_auth_constants.hpp"
-#include "irods_auth_plugin.hpp"
-#include "irods_client_server_negotiation.hpp"
-#include "irods_configuration_keywords.hpp"
-#include "irods_error.hpp"
-#include "irods_krb_object.hpp"
-#include "irods_kvp_string_parser.hpp"
-#include "irods_server_properties.hpp"
-#include "irods_stacktrace.hpp"
-#include "miscServerFunct.hpp"
-#include "rodsErrorTable.h"
-#include "rodsLog.h"
+#include <irods/authCheck.h>
+#include <irods/authPluginRequest.h>
+#include <irods/authRequest.h>
+#include <irods/authResponse.h>
+#include <irods/authenticate.h>
+#include <irods/genQuery.h>
+#include <irods/irods_auth_constants.hpp>
+#include <irods/irods_auth_plugin.hpp>
+#include <irods/irods_client_server_negotiation.hpp>
+#include <irods/irods_configuration_keywords.hpp>
+#include <irods/irods_error.hpp>
+#include <irods/irods_krb_object.hpp>
+#include <irods/irods_kvp_string_parser.hpp>
+#include <irods/irods_server_properties.hpp>
+#include <irods/irods_stacktrace.hpp>
+#include <irods/miscServerFunct.hpp>
+#include <irods/rodsErrorTable.h>
+#include <irods/rodsLog.h>
 
 #ifdef RODS_SERVER
-#include "rsGenQuery.hpp"
-#include "rsAuthCheck.hpp"
-#include "rsAuthResponse.hpp"
-#include "rsAuthRequest.hpp"
+#include <irods/rsGenQuery.hpp>
+#include <irods/rsAuthCheck.hpp>
+#include <irods/rsAuthResponse.hpp>
+#include <irods/rsAuthRequest.hpp>
 #endif
 
 
