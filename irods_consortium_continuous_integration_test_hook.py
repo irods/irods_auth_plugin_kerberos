@@ -319,8 +319,8 @@ def create_json_config_file_for_unit_test():
 
 
 def install_testing_dependencies():
-    irods_python_ci_utilities.subprocess_get_output(['sudo', '-EH', 'pip', 'install', 'unittest-xml-reporting==1.14.0'])
-    #add_shortname_to_etc_hosts()
+    irods_python_ci_utilities.subprocess_get_output(['sudo', '-EH', 'python2', '-m', 'pip', 'install', 'unittest-xml-reporting==1.14.0'])
+
     install_kerberos_packages()
     configure_realm_and_domain()
     restart_kerberos()
@@ -341,25 +341,32 @@ def main():
     parser = optparse.OptionParser()
     parser.add_option('--output_root_directory')
     parser.add_option('--built_packages_root_directory')
+    parser.add_option('--test', metavar='dotted name')
+    parser.add_option('--skip-setup', action='store_false', dest='do_setup', default=True)
     options, _ = parser.parse_args()
 
-    output_root_directory = options.output_root_directory
     built_packages_root_directory = options.built_packages_root_directory
     package_suffix = irods_python_ci_utilities.get_package_suffix()
     os_specific_directory = irods_python_ci_utilities.append_os_specific_directory(built_packages_root_directory)
 
-    irods_python_ci_utilities.install_os_packages_from_files(
-        glob.glob(os.path.join(os_specific_directory, 'irods-auth-plugin-krb*.{0}'.format(package_suffix))))
-    install_testing_dependencies()
+    if options.do_setup:
+        irods_python_ci_utilities.install_os_packages_from_files(
+            glob.glob(os.path.join(os_specific_directory,
+                      'irods-auth-plugin-krb*.{}'.format(package_suffix))
+            )
+        )
 
-    time.sleep(10)
+        install_testing_dependencies()
+
+    test = options.test or 'test_irods_auth_plugin_krb'
 
     try:
         test_output_file = 'log/test_output.log'
         irods_python_ci_utilities.subprocess_get_output(['sudo', 'su', '-', 'irods', '-c',
-                                                         'python2 scripts/run_tests.py --xml_output --run_s=test_irods_auth_plugin_krb 2>&1 | tee {0}; exit $PIPESTATUS'.format(
-                                                             test_output_file)], check_rc=True)
+            'python2 scripts/run_tests.py --xml_output --run_s={} 2>&1 | tee {}; exit $PIPESTATUS'.format(test, test_output_file)],
+            check_rc=True)
     finally:
+        output_root_directory = options.output_root_directory
         if output_root_directory:
             irods_python_ci_utilities.gather_files_satisfying_predicate('/var/lib/irods/log', output_root_directory,
                                                                         lambda x: True)
