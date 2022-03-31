@@ -18,16 +18,17 @@ def kdc_database_master_key():
 def unprivileged_principal_password():
     return 'krbtest'
 
-def add_shortname_to_etc_hosts():
-    fullname = socket.gethostname()
-    shortname = fullname.partition('.')[0]
+def add_alias_to_etc_hosts():
+    alias = '.'.join(['icat', 'example', 'org'])
+
     with tempfile.NamedTemporaryFile() as hosts_copy:
         with open('/etc/hosts', 'r') as hosts_file:
             for l in hosts_file:
-                if fullname in l:
-                    hosts_copy.write(l.strip() + ' ' + shortname + '\n')
+                # add the alias to the localhost line so that the server self-identifies as the KDC host
+                if '127.0.0.1' in l and alias not in l:
+                    hosts_copy.write(f'{l.strip()} {alias}\n'.encode())
                 else:
-                    hosts_copy.write(l)
+                    hosts_copy.write(l.encode())
         hosts_copy.flush()
         irods_python_ci_utilities.subprocess_get_output(['sudo', 'cp', hosts_copy.name, '/etc/hosts'], check_rc=True)
 
@@ -46,18 +47,15 @@ krb5-config	krb5-config/admin_server	string	icat.example.org
 krb5-config	krb5-config/kerberos_servers	string	icat.example.org
 '''
     with tempfile.NamedTemporaryFile() as f:
-        f.write(debconf_settings)
+        f.write(debconf_settings.encode())
         f.flush()
         irods_python_ci_utilities.subprocess_get_output(['sudo', 'debconf-set-selections', f.name], check_rc=True)
+
     irods_python_ci_utilities.install_os_packages(['krb5-admin-server', 'krb5-kdc'])
-    irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'enable', 'krb5-admin-server.service'], check_rc=True)
-    irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'enable', 'krb5-kdc.service'], check_rc=True)
 
 
 def install_kerberos_packages_yum():
     irods_python_ci_utilities.install_os_packages(['krb5-server', 'krb5-libs', 'krb5-workstation'])
-    irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'enable', 'krb5kdc.service'], check_rc=True)
-    irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'enable', 'kadmin.service'], check_rc=True)
 
 
 def install_kerberos_packages():
@@ -74,17 +72,17 @@ def install_kerberos_packages():
 
 def configure_realm_and_domain_apt():
     def create_kerberos_realm():
-        irods_python_ci_utilities.subprocess_get_output(['sudo', 'krb5_newrealm'], data='krbtest\nkrbtest\n', check_rc=True)
+        irods_python_ci_utilities.subprocess_get_output(['sudo', 'krb5_newrealm'], data='krbtest\nkrbtest\n'.encode(), check_rc=True)
 
     # add domain to krb5 conf
     def add_domain_to_krb5_conf():
         with tempfile.NamedTemporaryFile() as conf_copy:
             with open('/etc/krb5.conf', 'r') as conf:
                 for l in conf:
-                    conf_copy.write(l)
+                    conf_copy.write(l.encode())
                     if '[domain_realm]' in l:
-                        conf_copy.write('        .example.org = EXAMPLE.ORG\n')
-                        conf_copy.write('        example.org = EXAMPLE.ORG\n')
+                        conf_copy.write('        .example.org = EXAMPLE.ORG\n'.encode())
+                        conf_copy.write('        example.org = EXAMPLE.ORG\n'.encode())
             conf_copy.flush()
             irods_python_ci_utilities.subprocess_get_output(['sudo', 'cp', conf_copy.name, '/etc/krb5.conf'], check_rc=True)
 
@@ -99,8 +97,8 @@ def configure_realm_and_domain_apt():
         with tempfile.NamedTemporaryFile() as conf_copy:
             with open('/etc/krb5.conf', 'r') as conf:
                 for l in conf:
-                    conf_copy.write(l)
-            conf_copy.write(conf_section)
+                    conf_copy.write(l.encode())
+            conf_copy.write(conf_section.encode())
             conf_copy.flush()
             irods_python_ci_utilities.subprocess_get_output(['sudo', 'cp', conf_copy.name, '/etc/krb5.conf'], check_rc=True)
 
@@ -112,7 +110,7 @@ def configure_realm_and_domain_apt():
 
     add_domain_to_krb5_conf()
     enable_kerberos_logging()
-    create_kerberos_realm()   
+    create_kerberos_realm()
 
 def configure_realm_and_domain_yum():
     krb5_conf_contents = '''\
@@ -140,10 +138,10 @@ def configure_realm_and_domain_yum():
         with open('/etc/krb5.conf', 'r') as krb5_file:
              for l in krb5_file:
                  if 'default_ccache_name' in l:
-                     conf_copy.write("#default_ccache_name = KEYRING:persistent:%{uid}")
+                     conf_copy.write("#default_ccache_name = KEYRING:persistent:%{uid}".encode())
                  else:
-                     conf_copy.write(l)
-        conf_copy.write(krb5_conf_contents)
+                     conf_copy.write(l.encode())
+        conf_copy.write(krb5_conf_contents.encode())
         conf_copy.flush()
         irods_python_ci_utilities.subprocess_get_output(['sudo', 'cp', conf_copy.name, '/etc/krb5.conf'], check_rc=True)
 
@@ -161,17 +159,17 @@ def configure_realm_and_domain_yum():
  }
 '''
     irods_python_ci_utilities.subprocess_get_output(['sudo', 'chmod', '644', '/var/kerberos/krb5kdc/kdc.conf'], check_rc=True)
-    
+
     with tempfile.NamedTemporaryFile() as kdcconf_copy:
         with open('/var/kerberos/krb5kdc/kdc.conf', 'r') as kdc_file:
             for l in kdc_file:
-                kdcconf_copy.write(l)
-        kdcconf_copy.write(kdc_conf_contents)
+                kdcconf_copy.write(l.encode())
+        kdcconf_copy.write(kdc_conf_contents.encode())
         kdcconf_copy.flush()
         irods_python_ci_utilities.subprocess_get_output(['sudo', 'cp', kdcconf_copy.name, '/var/kerberos/krb5kdc/kdc.conf'], check_rc=True)
 
     irods_python_ci_utilities.subprocess_get_output(['sudo', 'kdb5_util', 'create', '-r', 'EXAMPLE.ORG', '-s', '-W'],
-                                                    data='{0}\n{0}\n'.format(kdc_database_master_key()), check_rc=True)
+                                                    data='{0}\n{0}\n'.format(kdc_database_master_key()).encode(), check_rc=True)
 
 
 def configure_realm_and_domain():
@@ -186,34 +184,15 @@ def configure_realm_and_domain():
         irods_python_ci_utilities.raise_not_implemented_for_distribution()
 
 
-def restart_kerberos_apt():
-    irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'restart', 'krb5-admin-server.service'], check_rc=True)
-    irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'restart', 'krb5-kdc.service'], check_rc=True)
-
-
-def restart_kerberos_yum():
-    if irods_python_ci_utilities.get_distribution_version_major() == '6':
-        irods_python_ci_utilities.subprocess_get_output(['/etc/init.d/krb5kdc', 'restart'], check_rc=True)
-        irods_python_ci_utilities.subprocess_get_output(['/etc/init.d/kadmin', 'restart'], check_rc=True)
-        irods_python_ci_utilities.subprocess_get_output(['chkconfig', 'krb5kdc', 'on'], check_rc=True)
-        irods_python_ci_utilities.subprocess_get_output(['chkconfig', 'kadmin', 'on'], check_rc=True)
-    elif irods_python_ci_utilities.get_distribution_version_major() == '7':
-        irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'restart', 'krb5kdc.service'], check_rc=True)
-        irods_python_ci_utilities.subprocess_get_output(['sudo', 'systemctl', 'restart', 'kadmin.service'], check_rc=True)
-    else:
-        assert False, 'OS unsupported: ' + irods_python_ci_utilities.get_irods_platform_string()
-
-
 def restart_kerberos():
-    dispatch_map = {
-        'Ubuntu': restart_kerberos_apt,
-        'Centos': restart_kerberos_yum,
-        'Centos linux': restart_kerberos_yum
-    }
-    try:
-        return dispatch_map[irods_python_ci_utilities.get_distribution()]()
-    except KeyError:
-        irods_python_ci_utilities.raise_not_implemented_for_distribution()
+    _, kadmin_pid, _ = irods_python_ci_utilities.subprocess_get_output(['cat', '/var/run/kadmind.pid'])
+    _, krb5kdc_pid, _ = irods_python_ci_utilities.subprocess_get_output(['cat', '/var/run/krb5kdc.pid'])
+
+    irods_python_ci_utilities.subprocess_get_output(['kill', kadmin_pid.strip()])
+    irods_python_ci_utilities.subprocess_get_output(['kill', krb5kdc_pid.strip()])
+
+    irods_python_ci_utilities.subprocess_get_output(['/usr/sbin/kadmind', '-P', '/var/run/kadmind.pid'], check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output(['/usr/sbin/krb5kdc', '-P', '/var/run/krb5kdc.pid'], check_rc=True)
 
 
 def create_privileged_principal():
@@ -221,7 +200,7 @@ def create_privileged_principal():
 krbtest
 krbtest
 '''
-    irods_python_ci_utilities.subprocess_get_output(['sudo','kadmin.local'], data=stdin, check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output(['sudo','kadmin.local'], data=stdin.encode(), check_rc=True)
 
 
 def enable_admin_privileges_apt():
@@ -230,8 +209,8 @@ def enable_admin_privileges_apt():
     with tempfile.NamedTemporaryFile() as kadm5_copy:
         with open('/etc/krb5kdc/kadm5.acl', 'r') as kadm5_file:
             for l in kadm5_file:
-                kadm5_copy.write(l)
-        kadm5_copy.write('*/admin *\n')
+                kadm5_copy.write(l.encode())
+        kadm5_copy.write('*/admin *\n'.encode())
         kadm5_copy.flush()
         irods_python_ci_utilities.subprocess_get_output(['sudo', 'cp', kadm5_copy.name, '/etc/krb5kdc/kadm5.acl'], check_rc=True)
 
@@ -241,8 +220,8 @@ def enable_admin_privileges_yum():
     with tempfile.NamedTemporaryFile() as kadm5_copy:
         with open('/var/kerberos/krb5kdc/kadm5.acl', 'r') as kadm5_file:
             for l in kadm5_file: 
-                 kadm5_copy.write(l)
-        kadm5_copy.write('*/admin@EXAMPLE.ORG *\n')
+                 kadm5_copy.write(l.encode())
+        kadm5_copy.write('*/admin@EXAMPLE.ORG *\n'.encode())
         kadm5_copy.flush()       
         irods_python_ci_utilities.subprocess_get_output(['sudo', 'cp', kadm5_copy.name, '/var/kerberos/krb5kdc/kadm5.acl'], check_rc=True)
 
@@ -265,14 +244,14 @@ addprinc {1}
 {2}
 {2}
 '''.format(kdc_database_master_key(), principal, unprivileged_principal_password())
-    irods_python_ci_utilities.subprocess_get_output(['sudo', 'kadmin', '-p', 'root/admin'], data=stdin, check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output(['sudo', 'kadmin', '-p', 'root/admin'], data=stdin.encode(), check_rc=True)
 
 
 def create_keytab():
     stdin = '''krbtest
 ktadd -k /var/lib/irods/irods.keytab irods/icat.example.org@EXAMPLE.ORG
 '''
-    irods_python_ci_utilities.subprocess_get_output(['sudo', 'kadmin', '-p', 'root/admin'], data=stdin, check_rc=True)
+    irods_python_ci_utilities.subprocess_get_output(['sudo', 'kadmin', '-p', 'root/admin'], data=stdin.encode(), check_rc=True)
     irods_python_ci_utilities.subprocess_get_output(['sudo', 'chown', 'irods:irods', '/var/lib/irods/irods.keytab'],
                                                     check_rc=True)
 
@@ -298,7 +277,7 @@ def restart_irods():
 
 def create_ticket_granting_ticket():
     irods_python_ci_utilities.subprocess_get_output(['sudo', 'kinit', 'krb_user'],
-                                                    data='{0}\n'.format(unprivileged_principal_password()),
+                                                    data='{0}\n'.format(unprivileged_principal_password()).encode(),
                                                     check_rc=True)
 
 
@@ -317,19 +296,22 @@ def create_json_config_file_for_unit_test():
 
 
 def install_testing_dependencies():
-    irods_python_ci_utilities.subprocess_get_output(['sudo', '-EH', 'pip', 'install', 'unittest-xml-reporting==1.14.0'])
+    irods_python_ci_utilities.subprocess_get_output(['sudo', '-EH', 'python3', '-m', 'pip', 'install', 'unittest-xml-reporting==1.14.0'])
+
     install_kerberos_packages()
+
+
+def configure_kerberos_for_testing():
     configure_realm_and_domain()
     restart_kerberos()
+
     create_privileged_principal()
     enable_admin_privileges()
     restart_kerberos()
-    time.sleep(1000)  # On Ubuntu 14: 'kadmin: GSS-API (or Kerberos) error while initializing kadmin interface' seen without. possibly clock skew issue w/ VMs spawning from old template and updating clocks while krb system initializes
+
     create_unprivileged_principal('krb_user')
     create_unprivileged_principal('irods/icat.example.org')
     create_keytab()
-    #update_irods_server_config()
-    #restart_irods()
     create_ticket_granting_ticket()
     create_json_config_file_for_unit_test()
 
@@ -353,7 +335,11 @@ def main():
             )
         )
 
+        add_alias_to_etc_hosts()
+
         install_testing_dependencies()
+
+        configure_kerberos_for_testing()
 
     test = options.test or 'test_irods_auth_plugin_krb'
 
