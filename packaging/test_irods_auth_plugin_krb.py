@@ -6,12 +6,11 @@ else:
     import unittest2 as unittest
 import shutil
 import json
-import ustrings
 
 from . import session
 from .. import lib
 from ..controller import IrodsController
-
+from . import ustrings
 
 def ils_output_to_entries(stdout):
     raw = stdout.strip().split('\n')
@@ -48,7 +47,7 @@ class Test_Authentication(unittest.TestCase):
             with open('/etc/irods/server_config.json', 'w') as f:
                 json.dump(d, f, indent=4, sort_keys=True)
             IrodsController().restart()
- 
+
         # load configuration from file
         with open(CFG_FILE_PATH) as cfg_file:
             self.config = json.load(cfg_file)
@@ -117,7 +116,7 @@ class Test_Authentication(unittest.TestCase):
             "irsync -r {local_dir} i:{base_name}".format(**locals()), "STDOUT_SINGLELINE", ustrings.recurse_ok_string(), env=env)
 
         # compare files at each level
-        for directory, files in local_dirs.iteritems():
+        for directory, files in local_dirs.items():
             partial_path = directory.replace(self.testing_tmp_dir + '/', '', 1)
 
             # run ils on subcollection
@@ -158,7 +157,7 @@ class Test_Authentication(unittest.TestCase):
             "irsync -r {local_dir} i:{base_name}".format(**locals()), "STDOUT_SINGLELINE", ustrings.recurse_ok_string(), env=env)
 
         # compare files at each level
-        for directory, files in local_dirs.iteritems():
+        for directory, files in local_dirs.items():
             partial_path = directory.replace(self.testing_tmp_dir + '/', '', 1)
 
             # run ils on subcollection
