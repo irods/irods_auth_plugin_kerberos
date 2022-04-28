@@ -56,6 +56,11 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 find_package(GSS REQUIRED)
 
 set(
+  IRODS_AUTH_PLUGIN_irods_auth_plugin-krb_SOURCES
+  ${CMAKE_SOURCE_DIR}/auth/src/krb.cpp
+  )
+
+set(
   IRODS_AUTH_PLUGIN_krb_SOURCES
   ${CMAKE_SOURCE_DIR}/auth_legacy/src/krb.cpp
   )
@@ -63,6 +68,7 @@ set(
 set(
   IRODS_AUTH_PLUGINS
   krb
+  irods_auth_plugin-krb
   )
 
 set(
@@ -109,11 +115,13 @@ foreach(PLUGIN ${IRODS_AUTH_PLUGINS})
       ${IRODS_PLUGIN_LINK_LIBRARIES_${TYPE}}
       irods_common
       irods_plugin_dependencies
+      nlohmann_json::nlohmann_json
       ${OPENSSL_CRYPTO_LIBRARY}
       ${GSS_LIBRARIES}
+      ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_filesystem.so
       ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_system.so
       ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so
-      )
+      dl)
     set_property(
       TARGET ${IRODS_CURRENT_PLUGIN_TARGET}
       APPEND
