@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR) #CPACK_DEBIAN_<COMPONENT>_PACKAGE_NAME
+cmake_minimum_required(VERSION 3.12.0 FATAL_ERROR) #CPACK_DEBIAN_<COMPONENT>_PACKAGE_NAME
 
 find_package(IRODS REQUIRED)
 set(IRODS_PLUGIN_REVISION "0")
@@ -55,7 +55,16 @@ find_package(OpenSSL REQUIRED)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 find_package(GSS REQUIRED)
 
-set(PLUGIN krb)
+set(
+  IRODS_AUTH_PLUGIN_krb_SOURCES
+  ${CMAKE_SOURCE_DIR}/auth_legacy/src/krb.cpp
+  )
+
+set(
+  IRODS_AUTH_PLUGINS
+  krb
+  )
+
 set(
   IRODS_PLUGIN_COMPILE_DEFINITIONS_client
   )
@@ -72,49 +81,52 @@ set(
   IRODS_PLUGIN_LINK_LIBRARIES_server
   irods_server
   )
+
 set(
   IRODS_PLUGIN_TYPES
   client
   server
   )
 
-foreach(TYPE ${IRODS_PLUGIN_TYPES})
-  set(IRODS_CURRENT_PLUGIN_TARGET ${PLUGIN}_${TYPE})
-  add_library(
-    ${IRODS_CURRENT_PLUGIN_TARGET}
-    MODULE
-    ${CMAKE_SOURCE_DIR}/krb/libkrb.cpp
-    )
-  target_include_directories(
-    ${IRODS_CURRENT_PLUGIN_TARGET}
-    PRIVATE
-    ${IRODS_INCLUDE_DIRS}
-    ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
-    ${IRODS_EXTERNALS_FULLPATH_FMT}/include
-    )
-  target_link_libraries(
-    ${IRODS_CURRENT_PLUGIN_TARGET}
-    PRIVATE
-    ${IRODS_PLUGIN_LINK_LIBRARIES_${TYPE}}
-    irods_common
-    irods_plugin_dependencies
-    ${OPENSSL_CRYPTO_LIBRARY}
-    ${GSS_LIBRARIES}
-    ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_system.so
-    ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so
-    )
-  set_property(
-    TARGET ${IRODS_CURRENT_PLUGIN_TARGET}
-    APPEND
-    PROPERTY COMPILE_DEFINITIONS
-    ${IRODS_PLUGIN_COMPILE_DEFINITIONS_${TYPE}} ${IRODS_COMPILE_DEFINITIONS} BOOST_SYSTEM_NO_DEPRECATED
-    )
-  install(
-    TARGETS
-    ${IRODS_CURRENT_PLUGIN_TARGET}
-    LIBRARY
-    DESTINATION ${IRODS_PLUGINS_DIRECTORY}/auth
-    )
+foreach(PLUGIN ${IRODS_AUTH_PLUGINS})
+  foreach(TYPE ${IRODS_PLUGIN_TYPES})
+    set(IRODS_CURRENT_PLUGIN_TARGET ${PLUGIN}_${TYPE})
+    add_library(
+      ${IRODS_CURRENT_PLUGIN_TARGET}
+      MODULE
+      ${IRODS_AUTH_PLUGIN_${PLUGIN}_SOURCES}
+      )
+    target_include_directories(
+      ${IRODS_CURRENT_PLUGIN_TARGET}
+      PRIVATE
+      ${IRODS_INCLUDE_DIRS}
+      ${IRODS_EXTERNALS_FULLPATH_BOOST}/include
+      ${IRODS_EXTERNALS_FULLPATH_FMT}/include
+      )
+    target_link_libraries(
+      ${IRODS_CURRENT_PLUGIN_TARGET}
+      PRIVATE
+      ${IRODS_PLUGIN_LINK_LIBRARIES_${TYPE}}
+      irods_common
+      irods_plugin_dependencies
+      ${OPENSSL_CRYPTO_LIBRARY}
+      ${GSS_LIBRARIES}
+      ${IRODS_EXTERNALS_FULLPATH_BOOST}/lib/libboost_system.so
+      ${IRODS_EXTERNALS_FULLPATH_FMT}/lib/libfmt.so
+      )
+    set_property(
+      TARGET ${IRODS_CURRENT_PLUGIN_TARGET}
+      APPEND
+      PROPERTY COMPILE_DEFINITIONS
+      ${IRODS_PLUGIN_COMPILE_DEFINITIONS_${TYPE}} ${IRODS_COMPILE_DEFINITIONS} BOOST_SYSTEM_NO_DEPRECATED
+      )
+    install(
+      TARGETS
+      ${IRODS_CURRENT_PLUGIN_TARGET}
+      LIBRARY
+      DESTINATION ${IRODS_PLUGINS_DIRECTORY}/auth
+      )
+  endforeach()
 endforeach()
 
 install(
