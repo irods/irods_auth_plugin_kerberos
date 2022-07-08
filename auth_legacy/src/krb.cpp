@@ -1056,7 +1056,7 @@ irods::error krb_auth_agent_start(irods::plugin_context& _ctx, const char*)
     if ( noNameMode ) { /* We didn't before, but now have an irodsUserName */
         int status2, status3;
         rodsServerHost_t *rodsServerHost = NULL;
-        status2 = getAndConnRcatHost( _ctx.comm(), MASTER_RCAT,
+        status2 = getAndConnRcatHost( _ctx.comm(), PRIMARY_RCAT,
                 _ctx.comm()->myEnv.rodsZone, &rodsServerHost );
         if ( status2 >= 0 &&
                 rodsServerHost->localFlag == REMOTE_HOST &&
@@ -1070,7 +1070,7 @@ irods::error krb_auth_agent_start(irods::plugin_context& _ctx, const char*)
             rodsServerHost->conn = NULL;
 
             /* And reconnect (with irodsUserName here and in the IES): */
-            status3 = getAndConnRcatHost( _ctx.comm(), MASTER_RCAT,
+            status3 = getAndConnRcatHost( _ctx.comm(), PRIMARY_RCAT,
                     _ctx.comm()->myEnv.rodsZone,
                     &rodsServerHost );
             if (status3 != 0) {
@@ -1271,7 +1271,7 @@ irods::error krb_auth_agent_response(irods::plugin_context& _ctx, authResponseIn
     /* need to do NoLogin because it could get into inf loop for cross
      * zone auth */
 
-    status = getAndConnRcatHostNoLogin( _ctx.comm(), MASTER_RCAT,
+    status = getAndConnRcatHostNoLogin( _ctx.comm(), PRIMARY_RCAT,
             _ctx.comm()->proxyUser.rodsZone, &rodsServerHost );
     if (status < 0) {
         return ERROR(status, "Connecting to rcat host failed.");
